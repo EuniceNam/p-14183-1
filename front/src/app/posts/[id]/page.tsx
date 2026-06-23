@@ -20,7 +20,11 @@ function usePost(id: number) {
   const deletePost = (id: number, onSuccess: () => void) => {
     apiFetch(`/api/v1/posts/${id}`, {
       method: "DELETE",
-    }).then(onSuccess);
+    })
+      .then(onSuccess)
+      .catch((error) => {
+        alert(`${error.resultCode} : ${error.msg}`);
+      });
   };
 
   return {
@@ -31,7 +35,7 @@ function usePost(id: number) {
 
 function usePostComments(postId: number) {
   const [postComments, setPostComments] = useState<PostCommentDto[] | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -45,13 +49,17 @@ function usePostComments(postId: number) {
   const deleteComment = (commentId: number, onSuccess: (data: any) => void) => {
     apiFetch(`/api/v1/posts/${postId}/comments/${commentId}`, {
       method: "DELETE",
-    }).then((data) => {
-      if (postComments == null) return;
+    })
+      .then((data) => {
+        if (postComments == null) return;
 
-      setPostComments(postComments.filter((c) => c.id != commentId));
+        setPostComments(postComments.filter((c) => c.id != commentId));
 
-      onSuccess(data);
-    });
+        onSuccess(data);
+      })
+      .catch((error) => {
+        alert(`${error.resultCode} : ${error.msg}`);
+      });
   };
 
   const writeComment = (content: string, onSuccess: (data: any) => void) => {
@@ -60,34 +68,42 @@ function usePostComments(postId: number) {
       body: JSON.stringify({
         content,
       }),
-    }).then((data) => {
-      if (postComments == null) return;
+    })
+      .then((data) => {
+        if (postComments == null) return;
 
-      setPostComments([...postComments, data.data]);
+        setPostComments([...postComments, data.data]);
 
-      onSuccess(data);
-    });
+        onSuccess(data);
+      })
+      .catch((error) => {
+        alert(`${error.resultCode} : ${error.msg}`);
+      });
   };
 
   const modifyComment = (
     commentId: number,
     content: string,
-    onSuccess: (data: any) => void
+    onSuccess: (data: any) => void,
   ) => {
     apiFetch(`/api/v1/posts/${postId}/comments/${commentId}`, {
       method: "PUT",
       body: JSON.stringify({ content }),
-    }).then((data) => {
-      if (postComments == null) return;
+    })
+      .then((data) => {
+        if (postComments == null) return;
 
-      setPostComments(
-        postComments.map((comment) =>
-          comment.id === commentId ? { ...comment, content } : comment
-        )
-      );
+        setPostComments(
+          postComments.map((comment) =>
+            comment.id === commentId ? { ...comment, content } : comment,
+          ),
+        );
 
-      onSuccess(data);
-    });
+        onSuccess(data);
+      })
+      .catch((error) => {
+        alert(`${error.resultCode} : ${error.msg}`);
+      });
   };
 
   return {
@@ -120,7 +136,10 @@ function PostInfo({ postState }: { postState: ReturnType<typeof usePost> }) {
       <div style={{ whiteSpace: "pre-line" }}>{post.content}</div>
 
       <div className="flex gap-2">
-        <button className="p-2 rounded border cursor-pointer" onClick={deletePost}>
+        <button
+          className="p-2 rounded border cursor-pointer"
+          onClick={deletePost}
+        >
           삭제
         </button>
         <Link className="p-2 rounded border" href={`/posts/${post.id}/edit`}>
@@ -139,14 +158,14 @@ function PostCommentWrite({
   const { postId, writeComment } = postCommentsState;
 
   const handleCommentWriteFormSubmit = (
-    e: React.SyntheticEvent<HTMLFormElement>
+    e: React.SyntheticEvent<HTMLFormElement>,
   ) => {
     e.preventDefault();
 
     const form = e.target as HTMLFormElement;
 
     const contentTextarea = form.elements.namedItem(
-      "content"
+      "content",
     ) as HTMLTextAreaElement;
 
     contentTextarea.value = contentTextarea.value.trim();
@@ -221,7 +240,7 @@ function PostCommentListItem({
     const form = e.target as HTMLFormElement;
 
     const contentTextarea = form.elements.namedItem(
-      "content"
+      "content",
     ) as HTMLTextAreaElement;
 
     contentTextarea.value = contentTextarea.value.trim();
